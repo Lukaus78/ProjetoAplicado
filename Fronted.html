@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PixelShop - Frontend</title>
+</head>
+<body>
+  <h1>PixelShop - Cadastro de Usuários</h1>
+
+  <form id="formulario">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" required><br>
+
+    <label for="endereco">Endereço:</label>
+    <input type="text" id="endereco" required><br>
+
+    <label for="telefone">Telefone:</label>
+    <input type="text" id="telefone" required><br>
+
+    <button type="submit">Adicionar Usuário</button>
+  </form>
+
+  <h2>Lista de Usuários:</h2>
+  <ul id="lista-usuarios"></ul>
+
+  <script>
+    const formulario = document.getElementById('formulario');
+    const listaUsuarios = document.getElementById('lista-usuarios');
+
+    // Função para adicionar um novo usuário
+    const adicionarUsuario = async (event) => {
+      event.preventDefault();
+
+      const nome = document.getElementById('nome').value;
+      const endereco = document.getElementById('endereco').value;
+      const telefone = document.getElementById('telefone').value;
+
+      const novoUsuario = { nome, endereco, telefone };
+
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoUsuario)
+      };
+
+      // Enviar a requisição para a API
+      const response = await fetch('http://localhost:8000/usuarios', requestOptions);
+
+      if (response.ok) {
+        // Limpar o formulário e atualizar a lista de usuários
+        formulario.reset();
+        obterUsuarios();
+      }
+    };
+
+    // Função para obter a lista de usuários
+    const obterUsuarios = async () => {
+      // Limpar a lista de usuários antes de preenchê-la novamente
+      listaUsuarios.innerHTML = '';
+
+      // Enviar a requisição para a API
+      const response = await fetch('http://localhost:8000/usuarios');
+      const usuarios = await response.json();
+
+      // Exibir os usuários na lista
+      usuarios.forEach(usuario => {
+        const itemLista = document.createElement('li');
+
+        const nomeUsuario = document.createElement('span');
+        nomeUsuario.textContent = `Nome: ${usuario.nome}, Endereço: ${usuario.endereco}, Telefone: ${usuario.telefone}`;
+        itemLista.appendChild(nomeUsuario);
+
+        const botaoRemover = document.createElement('button');
+        botaoRemover.textContent = 'Remover';
+        botaoRemover.addEventListener('click', () => removerUsuario(usuario._id));
+
+        itemLista.appendChild(botaoRemover);
+        listaUsuarios.appendChild(itemLista);
+      });
+    };
+
+    // Função para remover um usuário
+    const removerUsuario = async (id) => {
+      const requestOptions = {
+        method: 'DELETE'
+      };
+
+      // Enviar a requisição para a API
+      const response = await fetch(`http://localhost:8000/usuarios/${id}`, requestOptions);
+
+      if (response.ok) {
+        obterUsuarios();
+      }
+    };
+
+    formulario.addEventListener('submit', adicionarUsuario);
+
+    // Obter a lista de usuários ao carregar a página
+    obterUsuarios();
+  </script>
+</body>
+</html>
